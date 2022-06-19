@@ -1,6 +1,3 @@
-
-
-
 <?php
 
 
@@ -73,7 +70,7 @@
 
 
                 function drop_table($conn,$tb_index){   
-                        $sql = "DROP TABLE IF EXISTS map_ex_out".$tb_index."";
+                        $sql = "DROP TABLE IF EXISTS map_ex_out_zg".$tb_index."";
                         $conn->query($sql);
 
                 }
@@ -82,20 +79,40 @@
                 // To Create Newc tables 
 
                 function Create_Tables($fields,$tb_index,$conn){   
-
+                 
+                 
+                  $path = "localhost/aladdin/public/act=pimimporter&I=zg".$tb_index;
+                 
                     $_fields=null;
                     $_fields=get_qeuray($fields);
                     drop_table($conn,$tb_index);
 
-                      $sql = "CREATE TABLE map_ex_out".$tb_index." (
+                      $sql = "CREATE TABLE map_ex_out_zg".$tb_index." (
                           id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,".  $_fields."
                           )";
                         $conn->query($sql);
+                        if (!is_dir($path)) {
+                          mkdir($path, 0777, true);
+                      }
+
                     
                 }
 
 
+                function get_implode($fields){
 
+                  $qeuray=null;  $index=0;  $comma=',';
+                    foreach($fields as $field){
+                        if($index==count($fields)-1){
+                          $qeuray.=$field;
+                        }else{
+                          $qeuray.=$field.$comma;
+                        } 
+                      $index+=1;    
+                    }
+                  
+                return $qeuray;
+                }
                 
 
                     
@@ -104,16 +121,16 @@
                 function Insert_data($alt_fields,$neu_fields,$tb_index,$conn){    
                 
                     $table='map_ex_out';
+                    $new_table='map_ex_out_zg';
                     $sql_insert='';
 
 
-                    $_fields=implode(',',$alt_fields);
-                    $_neu_tb_fields=implode(',',$neu_fields);
-                  
+                    $alt_tb_fields=get_implode($alt_fields);
+                    $neu_tb_fields=get_implode($neu_fields);
                   
                   
 
-                          $qeuray="SELECT   $_fields  FROM $table";
+                          $qeuray="SELECT   $alt_tb_fields  FROM $table";
                           $result = mysqli_query($conn,$qeuray);
 
                             $count = count($alt_fields); $comma =", ";
@@ -139,7 +156,7 @@
                                                                   
                                 
                                     }
-                                    $sql_insert="INSERT INTO $table$tb_index ($_neu_tb_fields) VALUES $values";
+                                    $sql_insert="INSERT INTO $new_table$tb_index ($neu_tb_fields) VALUES $values";
                                     $conn->query($sql_insert);
 
                               
@@ -179,10 +196,8 @@
 
                         $alt_tb_fields= array_merge($fields,$prisFields);  
                         Insert_data($alt_tb_fields,$_fields,$tb_index,$conn);
-
-
-
-         }                  
+                   
+       }                 
          echo '<script>alert("die Tabellen wurden erfolgreich erstellt")</script>';
 
             CloseCon($conn);  
@@ -209,17 +224,4 @@
          </form>   
      </div>   
      
-    <script>
-
-      $(document).ready(function(){
-        $('h1').css('color','#069');
-        $('h1').css(' background-color','#fcfcfc');
-      })
-    </script>
-</div>  
-
-
-
-		
-
-
+   
