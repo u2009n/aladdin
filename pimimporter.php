@@ -4,11 +4,31 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="./sweetalert/sweetalert2.all.min.js"></script>
-<    <script src="./sweetalert/jquery-3.6.0.min.js"></script>
+    <link rel='stylesheet' type='text/css' href='style.css'>    <!--Css file -->
+    <script src="./sweetalert/sweetalert2.all.min.js"></script><!--Sweetalert2 file -->
+  <script src="./sweetalert/jquery-3.6.0.min.js"></script><!--jQeurav file -->
 </head>
 <body>
-    
+
+
+
+
+
+
+<div class="container">
+    <h1>Tabellen-Generator</h1>
+     <div class="content">
+         
+     <form  method="get" action="<?php echo $_SERVER['PHP_SELF']; ?>" >
+         <input type="hidden" name="i"> 
+         <input type="hidden" name="act" value="pimimporter" disabled>
+         </form>   
+     </div>   
+     
+</div>
+
+
+
 
 
 
@@ -18,6 +38,7 @@
 
    require_once('db_connection.php'); // call db connection to Datenbank
    $url="http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; // Get the Url
+   $url_validate='?';
 
 
 //******************************************************************************************************************************//
@@ -167,47 +188,45 @@
     //*******************************************************    Main Code   **************************************************************************//
     
     $mainFieldsName=null;$preisFiledsName=null;
-    $tb_index=0; $max=0; $index=0; $_validZgFields=false;
-
+    $tb_index=0; $max=0; $index=0; $_validZgFields=false; 
+   
            if (isset($_GET['i'])) {
-                    
+
                         if(is_numeric(substr($_GET['i'],2))){
 
                               $index=substr($_GET['i'],2); $max=substr($_GET['i'],2);  // To get the Tablenummer when used als  indvidu
 
-                        }else{ 
-                            // echo '<script>alert("die Adresse oder die Tablenummer stimmt nicht")</script>';
-                              ?>
-
-                            <script>
-
-                              Swal.fire({
+                        }else{ ?>
+                            <script>       // only Sweetalert
+                              Swal.fire({           
                                 icon: 'error',
                                 title: 'Warnung...',
                                 text: 'die Adresse oder die Tablenummer stimmt nicht',
                               })
                             </script>
-                                            
                   <?php }
-      
-            }else{
-
-              $index=1; $max=5;
+            }elseif(strpos($url, $url_validate)==false){
+                 $index=1; $max=5;
+            }else{ ?>
+                <script>       // only Sweetalert
+                  Swal.fire({           
+                    icon: 'error',
+                    title: 'Warnung...',
+                    text: 'die Adresse oder die Tablenummer stimmt nicht',
+                  })
+                </script>
+            <?php
             }    
-
                    if($index<>0 && $max<>0){
                          for ($tb_index=$index;$tb_index<=$max;$tb_index++ ){ 
 
-                            
                               $mainFieldsName="SHOW columns from map_ex_out where field not like 'zg%'";  // Select the fields names that have no profex zg
                               $preisFiledsName='SHOW columns from map_ex_out where field like';           // Select the fields names that have zg prifex
                               $preisFiledsName.=" 'zg".$tb_index."%'";
 
-
                                     $result = mysqli_query($conn,$mainFieldsName); // To get Main fields 
                                     $fields=get_fields($result,'');
 
-                                    
                                         $result = mysqli_query($conn,$preisFiledsName);   // To get ZG fields
                                         if(mysqli_num_rows($result) > 0){  
 
@@ -215,10 +234,8 @@
                                                       $prisFields=get_fields($result,$_validZgFields);
                                                         $zg_fields=get_Filter_zg($prisFields,$tb_index);
 
-
                                                            $_fields= array_merge($fields,$zg_fields);
                                                               Create_Tables($_fields,$tb_index,$conn); 
-
 
                                                            $alt_tb_fields= array_merge($fields,$prisFields);
                                                         Insert_data($alt_tb_fields,$_fields,$tb_index,$conn);
@@ -226,46 +243,33 @@
                                                       if (!is_dir('act=pimimporter&l=zg'.$tb_index)) {  // To create new director
                                                     mkdir('act=pimimporter&l=zg'.$tb_index, 0777, true);
                                                  }
+                                         }else{ ?>
+                                            <script>               // only Sweetalert
+                                                Swal.fire({
+                                                  icon: 'error',
+                                                  title: 'Warnung...',
+                                                  text: 'Es gibt keine Zielgruppe mit dieser Nummer',
+                                                  })
+                                            </script>
+                                     <?php }  
 
-
-                                           }else{
-                                          echo '<script>alert("Es gibt keine Zielgruppe mit dieser Nummer")</script>';
-                                        }  
-
-                          }  
-                         if($_validZgFields !=false) 
-
-                       echo '<script>alert("die Tablle oder  Tabellen wurden erfolgreich erstellt")</script>';
-
+                           }  
+                            if($_validZgFields !=false){ ?>
+                              <script>                 // only Sweetalert
+                                Swal.fire(
+                                        'Gut gemacht!',
+                                        'die Tablle oder  Tabellen wurden erfolgreich erstellt',
+                                        'success'
+                                      )
+                              
+                              </script>
+                       <?php }
                    }    
-   
     //*******************************************************    End Main Code   **************************************************************************//
     ?>
 
 
 
-
-<!-----------------------------------------------------------    HTML  Part     ------------------------------------------------------------------------------>
-
-<link rel='stylesheet' type='text/css' href='style.css'>    <!--Css file -->
-
-
-
-
-
-
-<div class="container">
-    <h1>Tabellen-Generator</h1>
-     <div class="content">
-         
-     <form  method="get" action="<?php echo $_SERVER['PHP_SELF']; ?>" >
-         <input type="hidden" name="i"> 
-         <input type="hidden" name ="pop" value="die Tabellen wurden erfolgreich erstellt" id="pop" >
-         <input type="hidden" name="act" value="pimimporter" disabled>
-         </form>   
-     </div>   
-     
-</div>
 
 
 
